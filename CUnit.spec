@@ -4,7 +4,7 @@
 #
 Name     : CUnit
 Version  : 2.1.3
-Release  : 16
+Release  : 17
 URL      : https://sourceforge.net/projects/cunit/files/CUnit/2.1-3/CUnit-2.1-3.tar.bz2
 Source0  : https://sourceforge.net/projects/cunit/files/CUnit/2.1-3/CUnit-2.1-3.tar.bz2
 Summary  : A unit testing framework for 'C'
@@ -18,6 +18,7 @@ BuildRequires : gcc-libgcc32
 BuildRequires : gcc-libstdc++32
 BuildRequires : glibc-dev32
 BuildRequires : glibc-libc32
+Patch1: 0001-Fix-doc-dir-location.patch
 
 %description
 CUnit is a unit testing framework for C.
@@ -55,6 +56,14 @@ Requires: CUnit-dev = %{version}-%{release}
 dev32 components for the CUnit package.
 
 
+%package doc
+Summary: doc components for the CUnit package.
+Group: Documentation
+
+%description doc
+doc components for the CUnit package.
+
+
 %package lib
 Summary: lib components for the CUnit package.
 Group: Libraries
@@ -86,6 +95,7 @@ license components for the CUnit package.
 %prep
 %setup -q -n CUnit-2.1-3
 cd %{_builddir}/CUnit-2.1-3
+%patch1 -p1
 pushd ..
 cp -a CUnit-2.1-3 build32
 popd
@@ -95,19 +105,19 @@ export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C.UTF-8
-export SOURCE_DATE_EPOCH=1604441357
+export SOURCE_DATE_EPOCH=1663012315
 export GCC_IGNORE_WERROR=1
 export AR=gcc-ar
 export RANLIB=gcc-ranlib
 export NM=gcc-nm
-export CFLAGS="$CFLAGS -O3 -ffat-lto-objects -flto=4 "
-export FCFLAGS="$FFLAGS -O3 -ffat-lto-objects -flto=4 "
-export FFLAGS="$FFLAGS -O3 -ffat-lto-objects -flto=4 "
-export CXXFLAGS="$CXXFLAGS -O3 -ffat-lto-objects -flto=4 "
+export CFLAGS="$CFLAGS -O3 -ffat-lto-objects -flto=auto "
+export FCFLAGS="$FFLAGS -O3 -ffat-lto-objects -flto=auto "
+export FFLAGS="$FFLAGS -O3 -ffat-lto-objects -flto=auto "
+export CXXFLAGS="$CXXFLAGS -O3 -ffat-lto-objects -flto=auto "
 %reconfigure --disable-static
 make  %{?_smp_mflags}
 pushd ../build32/
-export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"
+export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"
 export ASFLAGS="${ASFLAGS}${ASFLAGS:+ }--32"
 export CFLAGS="${CFLAGS}${CFLAGS:+ }-m32 -mstackrealign"
 export CXXFLAGS="${CXXFLAGS}${CXXFLAGS:+ }-m32 -mstackrealign"
@@ -126,7 +136,7 @@ cd ../build32;
 make %{?_smp_mflags} check || :
 
 %install
-export SOURCE_DATE_EPOCH=1604441357
+export SOURCE_DATE_EPOCH=1663012315
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/CUnit
 cp %{_builddir}/CUnit-2.1-3/COPYING %{buildroot}/usr/share/package-licenses/CUnit/ed0e19610ac746d6e0d0f3066e7335bade03be89
@@ -138,32 +148,17 @@ pushd %{buildroot}/usr/lib32/pkgconfig
 for i in *.pc ; do ln -s $i 32$i ; done
 popd
 fi
+if [ -d %{buildroot}/usr/share/pkgconfig ]
+then
+pushd %{buildroot}/usr/share/pkgconfig
+for i in *.pc ; do ln -s $i 32$i ; done
+popd
+fi
 popd
 %make_install
 
 %files
 %defattr(-,root,root,-)
-/usr/doc/CUnit/CUnit_doc.css
-/usr/doc/CUnit/error_handling.html
-/usr/doc/CUnit/fdl.html
-/usr/doc/CUnit/headers/Automated.h
-/usr/doc/CUnit/headers/Basic.h
-/usr/doc/CUnit/headers/CUCurses.h
-/usr/doc/CUnit/headers/CUError.h
-/usr/doc/CUnit/headers/CUnit.h
-/usr/doc/CUnit/headers/CUnit_intl.h
-/usr/doc/CUnit/headers/Console.h
-/usr/doc/CUnit/headers/MyMem.h
-/usr/doc/CUnit/headers/TestDB.h
-/usr/doc/CUnit/headers/TestRun.h
-/usr/doc/CUnit/headers/Util.h
-/usr/doc/CUnit/headers/Win.h
-/usr/doc/CUnit/index.html
-/usr/doc/CUnit/introduction.html
-/usr/doc/CUnit/managing_tests.html
-/usr/doc/CUnit/running_tests.html
-/usr/doc/CUnit/test_registry.html
-/usr/doc/CUnit/writing_tests.html
 
 %files data
 %defattr(-,root,root,-)
@@ -195,6 +190,10 @@ popd
 /usr/lib32/libcunit.so
 /usr/lib32/pkgconfig/32cunit.pc
 /usr/lib32/pkgconfig/cunit.pc
+
+%files doc
+%defattr(0644,root,root,0755)
+%doc /usr/share/doc/CUnit/*
 
 %files lib
 %defattr(-,root,root,-)
